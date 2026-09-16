@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# A container has no stable MAC to derive this from: Docker and Podman can
+# give it a new one when it is recreated, which would make it a new VRM
+# identity. So generate a random id once and keep it in /data.
+
+id_file=/data/venus/unique-id
+
+if [ ! -s "$id_file" ]; then
+    mkdir -p "${id_file%/*}" || exit 1
+    tmp="$id_file.$$"
+    id=$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | md5sum | cut -c1-12)
+    # set the locally administered bit of the first byte, like a random MAC,
+    # so the id never equals one derived from a real GX device's MAC
+    first=$(printf '%02x' $(( (0x${id%??????????} | 0x02) & 0xfe )))
+    echo "$first${id#??}" > "$tmp" && sync "$tmp" &&
+        ln "$tmp" "$id_file" 2>/dev/null   # first caller wins
+    rm -f "$tmp"
+fi
+
+cat "$id_file"
