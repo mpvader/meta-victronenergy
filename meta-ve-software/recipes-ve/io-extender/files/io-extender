@@ -91,6 +91,11 @@ setup_dio() {
     echo 0 >/sys/class/gpio/gpio$gpio/value
 }
 
+# the PWM chip (pca9632 at 0x62) on this IO-Extender's I2C bus has a driver
+pwm_bound() {
+    ls -d /sys/$DEVPATH/../../../../i2c-*/*-0062/driver >/dev/null 2>&1
+}
+
 setup_pwm() {
     for led in $(ls /sys/$DEVPATH/leds); do
         num=${led##*[!0-9]}
@@ -110,7 +115,7 @@ svc_update() {
 }
 
 case $ACTION in
-    add)
+    add|bind)
         mkdir -p $DIR
         exec {fd}<$DIR
         flock $fd
@@ -121,13 +126,24 @@ case $ACTION in
 
         case $PART in
             gpio) setup_dio ;;
-            pwm)  setup_pwm ;;
+            # without a driver there is nothing to set up yet; its bind
+            # event comes when one binds
+            pwm)  [ -d /sys/$DEVPATH/leds ] || exit 0; setup_pwm ;;
         esac
 
-        # Both parts have been configured, (re)start services
-        if [ -e $DIR/pwm0 -a -e $DIR/relay_1_in ]; then
+        # Both parts have been configured, (re)start services. Without a bound
+        # PWM driver its part may not come yet, so do not wait for it.
+        if [ -e $DIR/relay_1_in ] && { [ -e $DIR/pwm0 ] || ! pwm_bound; }; then
+            if [ $PART = pwm ] && [ -e /service/dbus-switch.$SERIAL ]; then
+                # Started before the PWM driver was bound; restart to pick
+                # up the PWM part. Not supervised yet means not started yet.
+                logger -t io-extender "$SERIAL: PWM driver bound, restarting dbus-switch"
+                svc -t /service/dbus-switch.$SERIAL || true
+            else
+                [ -e $DIR/pwm0 ] || logger -t io-extender "$SERIAL: no PWM driver (leds-pca963x) yet, starting without PWM outputs"
                 svc_update add
                 restart_digitalinputs=1
+            fi
         fi
 
         ;;
