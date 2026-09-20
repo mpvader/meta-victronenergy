@@ -19,4 +19,5 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN} += "\
     packagegroup-venus-base \
+    venus-container-volatile \
 "
