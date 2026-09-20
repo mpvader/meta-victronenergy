@@ -44,3 +44,11 @@ export OCI_IMAGE_REF_NAME
 
 OCI_IMAGE_ENTRYPOINT = "/sbin/init"
 OCI_IMAGE_PORTS = "80/tcp 443/tcp 1883/tcp 8883/tcp 9001/tcp"
+
+# When the container can't mount, overlays.sh can't mount its copy of the
+# services on /service, so point /service at that copy instead.
+ROOTFS_POSTPROCESS_COMMAND += "venus_container_service_link"
+venus_container_service_link() {
+    rm -rf ${IMAGE_ROOTFS}/service
+    ln -s /run/overlays/service ${IMAGE_ROOTFS}/service
+}
