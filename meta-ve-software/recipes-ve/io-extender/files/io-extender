@@ -15,13 +15,19 @@ G0_PINS="9 0:1 1:2 2:3 3:4"
 G1_PINS="8 11:5 12:6 13:7 14:8"
 PWM_EN_PIN=15
 
+# an export can outlive the container that made it, and exporting it again
+# fails
+export_gpio() {
+    [ -d /sys/class/gpio/gpio$1 ] || echo $1 >/sys/class/gpio/export
+}
+
 setup_group() (
     gpio_base=$1
     dirpin=$2
     shift 2
 
     dirgpio=$((gpio_base + dirpin))
-    echo $dirgpio >/sys/class/gpio/export
+    export_gpio $dirgpio
     dir=/sys/class/gpio/gpio$dirgpio
     echo in >$dir/direction
     dirval=$(cat $dir/value)
@@ -38,7 +44,7 @@ setup_group() (
         p=${pin%:*}
         n=${pin#*:}
         gpio=$((gpio_base + p))
-        echo $gpio >/sys/class/gpio/export
+        export_gpio $gpio
         echo $direction >/sys/class/gpio/gpio$gpio/direction
         link=$DIR/${label}_$n
         ln -s /sys/class/gpio/gpio$gpio $link
@@ -61,7 +67,7 @@ setup_relay() {
             *)  direction=low ;;
         esac
 
-        echo $gpio >/sys/class/gpio/export
+        export_gpio $gpio
         echo $direction >/sys/class/gpio/gpio$gpio/direction
         link=$DIR/$label${n:+_$n}
         ln -s /sys/class/gpio/gpio$gpio $link
@@ -85,7 +91,7 @@ setup_dio() {
 
     # PWN enable pin
     gpio=$((gpio_base_i2c + PWM_EN_PIN))
-    echo $gpio >/sys/class/gpio/export
+    export_gpio $gpio
     echo out >/sys/class/gpio/gpio$gpio/direction
     # Enable PWM by default
     echo 0 >/sys/class/gpio/gpio$gpio/value
@@ -124,11 +130,16 @@ case $ACTION in
             echo "tag	$SERIAL" >$CONF
         fi
 
+        # Already set up, e.g. by a second add event from the container coldplug,
+        # or by the bind event after the add: setting it up again would
+        # switch the digital outputs and the solid-state relay off.
         case $PART in
-            gpio) setup_dio ;;
+            gpio) [ -e $DIR/relay_1_in ] && exit 0; setup_dio ;;
             # without a driver there is nothing to set up yet; its bind
             # event comes when one binds
-            pwm)  [ -d /sys/$DEVPATH/leds ] || exit 0; setup_pwm ;;
+            pwm)  [ -e $DIR/pwm0 ] && exit 0
+                  [ -d /sys/$DEVPATH/leds ] || exit 0
+                  setup_pwm ;;
         esac
 
         # Both parts have been configured, (re)start services. Without a bound
