@@ -5,6 +5,12 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 DEPENDS = "dbus libevdev iptables qtbase udev"
 RDEPENDS:${PN} += "can-utils connman flashmq mk2vsc qtbase-plugin-qopensslbackend socketcand"
 
+# a container's network is managed by its runtime, not by connman
+RDEPENDS:${PN}:remove:venus-container = "connman"
+
+# without connman the package differs from the GX one with the same tune
+PACKAGE_ARCH:venus-container = "${MACHINE_ARCH}"
+
 UPSTREAM_CHECK_GITTAGREGEX = "v(?P<pver>\S+)"
 SRC_URI = " \
     gitsm://github.com/victronenergy/venus-platform.git;branch=master;protocol=ssh;user=git \
