@@ -31,18 +31,12 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += "\
-    avahi-autoipd \
     bash \
-    bluez5 \
-    bluez5-noinst-tools \
     bzip2 \
     ca-certificates \
     can-utils \
     can-utils-access \
     can-utils-cantest \
-    ch343 \
-    connman \
-    connman-tools \
     crash-logger \
     cronie \
     curl \
@@ -51,7 +45,6 @@ RDEPENDS:${PN} += "\
     dbus-common \
     dbus-tools \
     default-locale \
-    dnsmasq \
     dpkg-start-stop \
     e2fsprogs \
     eglibc-utils \
@@ -59,15 +52,8 @@ RDEPENDS:${PN} += "\
     gdbserver \
     io-extender \
     iproute2 \
-    javascript-vnc-client \
     ldd \
     less \
-    linux-firmware-mt7601u \
-    linux-firmware-mt7662 \
-    linux-firmware-rt2800 \
-    linux-firmware-rt73 \
-    linux-firmware-rtl8192cu \
-    linux-firmware-rtl-bt \
     llmnrd \
     localedef \
     logo \
@@ -75,13 +61,9 @@ RDEPENDS:${PN} += "\
     ncurses-tools \
     openssh \
     openssh-sftp-server \
-    opkg \
     permanent-storage \
-    pointercal \
-    ppp \
     python-symlink \
     rsync \
-    rtl8192eu \
     screen \
     socat \
     sysctl-conf \
@@ -103,10 +85,34 @@ RDEPENDS:${PN} += "\
     venus-feed-configs \
     venus-html5-app \
     venus-mdns-aliases \
-    watchdog \
     wget \
-    wireless-regdb-static \
     zip \
 "
 
 RDEPENDS:${PN} += "python3-s2"
+
+# only for real hardware, not in a container
+HARDWARE = "\
+    avahi-autoipd \
+    bluez5 \
+    bluez5-noinst-tools \
+    ch343 \
+    connman \
+    connman-tools \
+    dnsmasq \
+    javascript-vnc-client \
+    linux-firmware-mt7601u \
+    linux-firmware-mt7662 \
+    linux-firmware-rt2800 \
+    linux-firmware-rt73 \
+    linux-firmware-rtl8192cu \
+    linux-firmware-rtl-bt \
+    opkg \
+    pointercal \
+    ppp \
+    rtl8192eu \
+    watchdog \
+    wireless-regdb-static \
+"
+HARDWARE:venus-container = ""
+RDEPENDS:${PN} += "${HARDWARE}"

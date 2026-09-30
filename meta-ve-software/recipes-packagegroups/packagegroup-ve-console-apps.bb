@@ -18,3 +18,6 @@ RDEPENDS:${PN} += " \
     javascript-vnc-client \
     localsettings \
 "
+
+# only for gui-v1, which a container doesn't have
+RDEPENDS:${PN}:remove:venus-container = "javascript-vnc-client"
