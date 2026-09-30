@@ -122,3 +122,7 @@ do_install:append() {
     install -d ${D}${sysconfdir}/init.d
     install -m 0755 ${UNPACKDIR}/machine-conf.sh ${D}${sysconfdir}/init.d
 }
+
+do_install:append:container-gx() {
+    touch ${D}${sysconfdir}/venus/container
+}
