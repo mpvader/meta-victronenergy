@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# A container has no board or devicetree.
+exit 1
