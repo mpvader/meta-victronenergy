@@ -110,3 +110,26 @@ RDEPENDS:${PN} += "\
 "
 
 RDEPENDS:${PN} += "python3-s2"
+
+# not in a container: no display, hardware or network of its own
+RDEPENDS:${PN}:remove:container-gx = "\
+    avahi-autoipd \
+    bluez5 \
+    bluez5-noinst-tools \
+    ch343 \
+    connman \
+    connman-tools \
+    dnsmasq \
+    javascript-vnc-client \
+    linux-firmware-mt7601u \
+    linux-firmware-mt7662 \
+    linux-firmware-rt2800 \
+    linux-firmware-rt73 \
+    linux-firmware-rtl8192cu \
+    linux-firmware-rtl-bt \
+    pointercal \
+    ppp \
+    rtl8192eu \
+    watchdog \
+    wireless-regdb-static \
+"

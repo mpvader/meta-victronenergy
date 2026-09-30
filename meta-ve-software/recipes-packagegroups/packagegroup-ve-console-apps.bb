@@ -19,3 +19,6 @@ RDEPENDS:${PN} += " \
     localsettings \
 	venus-dynamicess \
 "
+
+# only for gui-v1, which a container doesn't have
+RDEPENDS:${PN}:remove:container-gx = "javascript-vnc-client"
