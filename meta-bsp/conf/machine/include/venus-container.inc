@@ -7,3 +7,8 @@ PREFERRED_PROVIDER_virtual/kernel ?= "linux-dummy"
 USE_VT = "0"
 
 START_GUI = ""
+
+# The SDK can have the architecture of a container machine; keep the
+# toolchain names of the image and the SDK apart. Native SDK recipes ignore
+# machine overrides, so append.
+SDK_VENDOR:append = "sdk"
