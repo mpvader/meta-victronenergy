@@ -43,6 +43,10 @@ OCI_IMAGE_REF_NAME = "docker.io/library/container-gx:${OCI_IMAGE_TAG}"
 export OCI_IMAGE_REF_NAME
 
 OCI_IMAGE_ENTRYPOINT = "/sbin/init"
+# sysvinit ignores SIGTERM and SIGRTMIN+3, the Docker and Podman defaults,
+# and SIGINT reboots.
+OCI_IMAGE_STOPSIGNAL = "SIGPWR"
+export OCI_IMAGE_STOPSIGNAL
 OCI_IMAGE_PORTS = "80/tcp 443/tcp 1883/tcp 8883/tcp 9001/tcp"
 
 # When the container can't mount, overlays.sh can't mount its copy of the
