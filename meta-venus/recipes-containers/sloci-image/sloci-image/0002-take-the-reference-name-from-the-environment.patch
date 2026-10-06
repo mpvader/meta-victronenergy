@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mpvader <mvader@victronenergy.com>
+Date: Wed, 14 Oct 2026 10:05:11 +0000
+Subject: [PATCH] sloci-image: take the reference name from the environment
+
+Docker and Podman use the reference name in index.json as the image
+name when they load the archive. With only the tag there, the image
+loads without a usable name.
+
+Take the reference name from OCI_IMAGE_REF_NAME when it is set, as
+image-oci-sloci-image.inc passes only the tag. The archive file name
+keeps using the tag.
+
+Upstream-Status: Pending
+---
+ sloci-image | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/sloci-image b/sloci-image
+index 73b187f..70b8a7d 100755
+--- a/sloci-image
++++ b/sloci-image
+@@ -313,7 +313,7 @@ oci_image_index() {
+ 	        "os": "$CFG_OS"
+ 	      },
+ 	      "annotations": {
+-	        "org.opencontainers.image.ref.name": "$CFG_REF_NAME"
++	        "org.opencontainers.image.ref.name": "${CFG_INDEX_REF:-$CFG_REF_NAME}"
+ 	      }
+ 	    }
+ 	  ]
+@@ -328,6 +328,7 @@ CFG_ARCH= CFG_ARCH_VARIANT= CFG_AUTHOR= CFG_ENTRYPOINT= CFG_CMD= CFG_ENV=
+ CFG_LABELS= CFG_OS= CFG_PORTS= CFG_USER= CFG_VOLUMES= CFG_WORKING_DIR=
+ 
+ CFG_OS='linux'
++CFG_INDEX_REF="${OCI_IMAGE_REF_NAME:-}"
+ OUT_TYPE='dir'
+ 
+ while [ $# -gt 0 ]; do
