@@ -21,6 +21,7 @@ RDEPENDS:${PN} += "\
     packagegroup-venus-base \
     container-gx-coldplug \
     container-gx-http-ports \
+    container-gx-init \
     container-gx-sysfs \
     container-gx-volatile \
 "

@@ -12,3 +12,6 @@ START_GUI = ""
 # toolchain names of the image and the SDK apart. Native SDK recipes ignore
 # machine overrides, so append.
 SDK_VENDOR:append = "sdk"
+
+# shut down on SIGPWR, container-gx-image's stop signal
+INITTAB = "pf::powerfail:/sbin/shutdown -h now"
