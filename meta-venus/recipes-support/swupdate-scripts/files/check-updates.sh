@@ -148,6 +148,17 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# A container is updated by pulling a new container image, so in a container
+# only check the feed.
+if [ -f /etc/venus/container ]; then
+    container=y
+    if [ "$offline" = y ] || [ -n "$forceswu" ]; then
+        echo "A container is updated by pulling a new container image, exit."
+        [ "$offline" = y ] && swu_status -3
+        exit 1
+    fi
+fi
+
 if [ "$help" = y ]; then
     echo "check-updates.sh: wrapper script around swupdate"
     echo
@@ -288,7 +299,7 @@ else
            ;;
     esac
 
-    if [ ${imgtype:-normal} != $(cat /etc/venus/image-type) ]; then
+    if [ "$container" != y ] && [ ${imgtype:-normal} != $(cat /etc/venus/image-type) ]; then
         force=y;
     fi
 
@@ -300,6 +311,7 @@ else
 
     URL_BASE=${swubase}images/${machine}
     SWU=${URL_BASE}/${swu_base}.swu
+    [ "$container" = y ] && SWU=${URL_BASE}/venus-container-version
 fi
 
 if [[ -z $forceswu ]]; then
@@ -307,7 +319,13 @@ if [[ -z $forceswu ]]; then
     swu_status 1
 
     cur_version=$(get_version)
-    swu_version=$(get_swu_version "$SWU")
+    if [ "$container" = y ]; then
+        swu_version=$(curl -s -f -m 30 --retry 3 "$SWU" | get_version /dev/stdin)
+        # not a version file, such as a captive portal's page
+        case ${swu_version%% *} in *[!0-9]*) swu_version= ;; esac
+    else
+        swu_version=$(get_swu_version "$SWU")
+    fi
 
     if [ -z "$swu_version" ]; then
         echo "Unable to retrieve latest software version, exit."
@@ -332,7 +350,7 @@ if [[ -z $forceswu ]]; then
         exit
     fi
 
-    if [ "$update" != 1 ]; then
+    if [ "$update" != 1 ] || [ "$container" = y ]; then
         swu_status 0 "$swu_version"
         exit
     fi

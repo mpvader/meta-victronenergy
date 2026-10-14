@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 # swupdate is MACHINE specific, this is as well.
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 RDEPENDS:${PN} = "bash e2fsprogs-resize2fs swupdate"
+# a container only checks for updates, see check-updates.sh
+RDEPENDS:${PN}:remove:venus-container = "e2fsprogs-resize2fs swupdate"
 
 SRC_URI = " \
     file://check-updates.init \
