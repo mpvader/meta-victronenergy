@@ -55,3 +55,9 @@ container_gx_link_service_dir() {
     rm -rf ${IMAGE_ROOTFS}/service
     ln -s /run/overlays/service ${IMAGE_ROOTFS}/service
 }
+
+# for check-updates.sh in a container, which reads it from the feed
+IMAGE_POSTPROCESS_COMMAND += "container_gx_deploy_version"
+container_gx_deploy_version() {
+    install -m 0644 ${IMAGE_ROOTFS}/opt/victronenergy/version ${IMGDEPLOYDIR}/container-gx-version
+}
