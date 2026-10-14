@@ -14,6 +14,7 @@ RDEPENDS:${PN} += "\
     netmon \
     packagegroup-core-boot \
     packagegroup-ve-console-apps \
+    swupdate-scripts \
     venus-version \
 "
 
