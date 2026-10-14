@@ -9,6 +9,9 @@ echo "Active rootfs:" $(get_rootfs)
 
 get_version $version | tee /var/run/versions | sed 's/^/Active version: /'
 
+# a container has no backup rootfs
+[ -f /etc/venus/container ] && exit
+
 other=$(get_altrootfs)
 
 if [ -z "$other" ]; then

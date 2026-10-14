@@ -19,6 +19,7 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN} += "\
     packagegroup-venus-base \
+    swupdate-scripts \
     venus-container-env \
     venus-container-init \
     venus-container-sysfs \

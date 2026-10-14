@@ -56,3 +56,9 @@ venus_container_service_link() {
     rm -rf ${IMAGE_ROOTFS}/service
     ln -s /run/overlays/service ${IMAGE_ROOTFS}/service
 }
+
+# The feed holds this next to the archive, for check-updates.sh in a container.
+IMAGE_POSTPROCESS_COMMAND += "venus_container_deploy_version"
+venus_container_deploy_version() {
+    install -m 0644 ${IMAGE_ROOTFS}/opt/victronenergy/version ${IMGDEPLOYDIR}/venus-container-version
+}
