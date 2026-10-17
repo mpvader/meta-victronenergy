@@ -6,11 +6,11 @@ inherit daemontools localsettings python-compile ve_package
 
 UPSTREAM_CHECK_GITTAGREGEX = "(?P<pver>\S+)"
 SRC_URI = " \
-    gitsm://github.com/victronenergy/dbus-systemcalc-py.git;branch=master;protocol=https \
+    gitsm://github.com/mpvader/dbus-systemcalc-py.git;branch=mva/container;protocol=https \
     file://com.victronenergy.system.conf \
     file://localsettings \
 "
-SRCREV = "45630673f5ba42f83543258231b95ba153b6498a"
+SRCREV = "1cd3209ffa4a356c9df93a21560b110f0ae9c9f1"
 S = "${WORKDIR}/git"
 
 RDEPENDS:${PN} = " \
