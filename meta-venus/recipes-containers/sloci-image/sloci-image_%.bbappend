@@ -4,4 +4,5 @@ SRC_URI += " \
     file://0001-omit-variant-from-archive-name.patch \
     file://0002-take-the-reference-name-from-the-environment.patch \
     file://0003-add-stop-signal-option.patch \
+    file://0004-put-the-arch-variant-in-the-image-config.patch \
 "
