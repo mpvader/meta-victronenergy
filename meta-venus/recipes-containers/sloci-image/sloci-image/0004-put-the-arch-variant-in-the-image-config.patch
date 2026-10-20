@@ -1,0 +1,21 @@
+From: Matthijs Vader <mvader@victronenergy.com>
+Subject: [PATCH] sloci-image: put the arch variant in the image config
+
+The variant, such as v7 for armv7, was only written to the platform in
+the index, not to the image config. docker image inspect, which reads the
+config, then shows linux/arm instead of linux/arm/v7.
+
+Upstream-Status: Pending
+---
+diff --git a/sloci-image b/sloci-image
+index a7c1018..d9786cf 100755
+--- a/sloci-image
++++ b/sloci-image
+@@ -269,6 +269,7 @@ oci_image_config() {
+ 	  "created": "$created",
+ 	  "author": $(json_string "$CFG_AUTHOR" null),
+ 	  "architecture": "$(oci_arch $CFG_ARCH)",
++	  ${CFG_ARCH_VARIANT:+"\"variant\": $(json_string "$CFG_ARCH_VARIANT"),"}
+ 	  "os": "$CFG_OS",
+ 	  "config": {
+ 	    ${CFG_USER:+"\"User\": $(json_string "$CFG_USER"),"}
