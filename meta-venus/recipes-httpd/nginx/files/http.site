@@ -9,7 +9,7 @@ server {
     gzip_static always;
 
     index index.html index.php;
-    error_page 401 403 =200 http://$host/auth/login.php?page=$request_uri;
+    error_page 401 403 =200 http://$http_host/auth/login.php?page=$request_uri;
 
     location ~ ^/auth/generate-token {
       return 403;
