@@ -1,5 +1,13 @@
 *filter
 :new-conn -
+:mobile-in -
 -A INPUT -i lo -j ACCEPT
+-A INPUT -i ppp+ -j mobile-in
 -A INPUT -m conntrack --ctstate NEW -j new-conn
+# On mobile internet (GX LTE 4G, GX GSM) the GX device can have a public
+# address, with no router or firewall in between: only accept replies to
+# connections it opened itself, and ICMPv6 (protocol 58), which IPv6 needs.
+-A mobile-in -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A mobile-in -p 58 -j ACCEPT
+-A mobile-in -j DROP
 COMMIT
