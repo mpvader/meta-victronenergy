@@ -6,6 +6,8 @@
 -A INPUT -i ppp+ -j mobile-in
 -A INPUT -m conntrack --ctstate NEW -j new-conn
 -A OUTPUT -o ppp+ -j mobile-out
+# Also when forwarding, e.g. for devices on the GX device's access point.
+-A FORWARD -i ppp+ -m conntrack --ctstate NEW -j DROP
 # On mobile internet (GX LTE 4G, GX GSM) the GX device can have a public
 # address, with no router or firewall in between: only accept replies to
 # connections it opened itself, and ICMPv6 (protocol 58), which IPv6 needs.
