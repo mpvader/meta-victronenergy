@@ -4,7 +4,8 @@ echo "*** Starting signalk ***"
 
 CONF="/data/conf/signalk"
 PLUGINCONF="${CONF}/plugin-config-data"
-DEFAULTCONF="/usr/lib/node_modules/signalk-server/defaults"
+APPDIR="/usr/lib/node_modules/signalk-server"
+DEFAULTCONF="$APPDIR/defaults"
 
 n2k_interface=""
 
@@ -49,17 +50,67 @@ find_n2k_canbus() {
     done
 }
 
-# Remove plugins from /data that are, since v3.00, installed on root
-# npm uninstall is used, rather than for example rm -rf, to also remove
-# them from $CONF/package.json.
-if [ -d "$CONF/node_modules/signalk-venus-plugin" ]; then
-    echo "** signalk-venus-plugin is found on /data, running npm uninstall"
-    npm --prefix $CONF uninstall signalk-venus-plugin
-fi
+# Remove plugins and webapps from /data when the rootfs has the same or a
+# newer version of them, so that the rootfs version is used again.
+# Only look at plugins and webapps the appstore installed, i.e.
+# the dependencies in $CONF/package.json with a version range: leave
+# installs from git, a path or npm link alone. A listed copy that is
+# missing or unreadable on /data is removed from package.json too.
+# npm uninstall is used, rather than rm -rf, to also remove them from
+# $CONF/package.json, and to keep a copy that another plugin on /data
+# still needs; signalk-server then still loads that copy. With --offline,
+# npm fails when it would have to fetch something; then remove them by
+# hand, else the same happens at every start.
+outdated=$(node - "$CONF" "$APPDIR" <<'EOF'
+const fs = require('fs');
+const path = require('path');
+const [conf, app] = process.argv.slice(2);
+const semver = require(path.join(app, 'node_modules', 'semver'));
+const read = (f) => {
+    try {
+        return JSON.parse(fs.readFileSync(f, 'utf8'));
+    } catch (e) {
+        return null;
+    }
+};
+const keywords = ['signalk-node-server-plugin', 'signalk-webapp',
+    'signalk-embeddable-webapp', 'signalk-wasm-plugin',
+    'signalk-node-server-addon', 'signalk-plugin-configurator'];
+const config = read(path.join(conf, 'package.json')) || {};
+for (const [name, spec] of Object.entries(config.dependencies || {})) {
+    const rootfs = read(path.join(app, 'node_modules', name, 'package.json'));
+    if (!rootfs || !Array.isArray(rootfs.keywords) ||
+            !rootfs.keywords.some((k) => keywords.includes(k)) ||
+            !semver.validRange(spec)) {
+        continue;
+    }
+    const dir = path.join(conf, 'node_modules', name);
+    try {
+        if (fs.lstatSync(dir).isSymbolicLink()) {
+            continue;
+        }
+    } catch (e) {
+    }
+    const data = read(path.join(dir, 'package.json'));
+    if (!data || (semver.valid(data.version) && semver.valid(rootfs.version) &&
+            semver.lte(data.version, rootfs.version))) {
+        console.log(name);
+    }
+}
+EOF
+)
 
-if [ -d "$CONF/node_modules/signalk-n2kais-to-nmea0183" ]; then
-    echo "** signalk-n2kais-to-nmea0183 is found on /data, running npm uninstall"
-    npm --prefix $CONF uninstall signalk-n2kais-to-nmea0183
+if [ -n "$outdated" ]; then
+    echo "** on /data, but the same or newer on the rootfs, or missing: running npm uninstall" $outdated
+    if ! HOME="$CONF" npm --prefix "$CONF" uninstall --offline --ignore-scripts \
+            --no-audit --no-fund --no-update-notifier $outdated; then
+        echo "** npm uninstall failed, removing them by hand"
+        for name in $outdated; do
+            rm -rf "$CONF/node_modules/$name"
+            jq --arg n "$name" 'del(.dependencies[$n])' "$CONF/package.json" > "$CONF/package.json.tmp" &&
+                mv "$CONF/package.json.tmp" "$CONF/package.json" || rm -f "$CONF/package.json.tmp"
+        done
+    fi
 fi
 
 # Install the default settings, in case there are no settings yet
@@ -119,7 +170,6 @@ fi
 
 sync
 
-export PLUGINS_WITH_UPDATE_DISABLED="signalk-venus-plugin,signalk-n2kais-to-nmea0183,sk-to-nmea0183.json"
 export SIGNALK_DISABLE_SERVER_UPDATES=true
 export PRESERIALCOMMAND="/opt/victronenergy/serial-starter/stop-tty.sh"
 export MFD_ADDRESS_SCRIPT="/usr/lib/node_modules/signalk-server/get-mfd-announce-address.sh"
