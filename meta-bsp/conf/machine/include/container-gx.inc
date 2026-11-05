@@ -15,3 +15,9 @@ SDK_VENDOR:append = "sdk"
 
 # shut down on SIGPWR, container-gx-image's stop signal
 INITTAB = "pf::powerfail:/sbin/shutdown -h now"
+
+# Recipes like iptables RRECOMMEND kernel modules, which gives their packages
+# a dependency on linux-dummy that a GX machine doesn't have. sstate only drops
+# that for a kernel recipe, so iptables would get another hash than on the GX
+# machines of the same tune, and both would write the same package in one build.
+SIGGEN_EXCLUDE_SAFE_RECIPE_DEPS += "*->linux-dummy"
