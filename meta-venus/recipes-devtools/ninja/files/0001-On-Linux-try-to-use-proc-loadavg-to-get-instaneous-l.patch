@@ -1,0 +1,57 @@
+From 367fbf8d86ba9db95e00a8c79edc84e9db4b2e93 Mon Sep 17 00:00:00 2001
+From: Michael Poole <mdpoole@troilus.org>
+Date: Mon, 6 Mar 2023 05:42:16 -0500
+Subject: [PATCH] On Linux, try to use /proc/loadavg to get instaneous load
+ (#2218)
+
+The /proc/loadavg file includes the traditional 1-, 5- and 15-minute
+loads plus an instantaneous count of processes that are ready to run.
+This lets us respond faster to new processes being launched by other
+processes.
+
+Upstream-Status: Submitted [https://github.com/ninja-build/ninja/pull/2268]
+---
+ src/util.cc | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/src/util.cc b/src/util.cc
+index eefa3f50cd..0ef3a12c4e 100644
+--- a/src/util.cc
++++ b/src/util.cc
+@@ -825,6 +825,36 @@ double GetLoadAverage() {
+ }
+ #else
+ double GetLoadAverage() {
++# if defined(__linux__)
++  // Only try to open the file once.
++  static int fd = -1;
++  if (fd == -1) {
++    fd = open("/proc/loadavg", O_RDONLY);
++    if (fd < 0) {
++      fd = -2;
++    }
++  }
++
++  if (fd >= 0) {
++    char buf[65], *p;
++    ssize_t nbr = pread(fd, buf, sizeof(buf) - 1, 0);
++    // Load average should be at least "1 5 9 n/", where we want the "n".
++    if (nbr > 7) {
++      buf[nbr] = '\0';
++      p = strchr(buf, ' ');
++      if (p) {
++        p = strchr(p + 1, ' ');
++      }
++      if (p) {
++        p = strchr(p + 1, ' ');
++      }
++      if (p && (unsigned(p[1]) - '0' <= 9)) {
++        return atoi(p + 1);
++      }
++    }
++  }
++# endif
++
+   double loadavg[3] = { 0.0f, 0.0f, 0.0f };
+   if (getloadavg(loadavg, 3) < 0) {
+     // Maybe we should return an error here or the availability of
