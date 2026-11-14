@@ -33,11 +33,7 @@ inherit core-image
 IMAGE_NAME = "${IMAGE_BASENAME}-${MACHINE}-${DATETIME}-${DISTRO_VERSION}"
 IMAGE_NAME[vardepsexclude] += "DATETIME"
 
-python () {
-    pn = d.getVar('PN').split('-', 2)
-    img_type = pn[2] if len(pn) > 2 else 'normal'
-    d.setVar('VENUS_IMAGE_TYPE', img_type)
-}
+VENUS_IMAGE_TYPE ?= "${@(d.getVar('PN').split('-', 2) + ['normal'])[2]}"
 
 fakeroot do_image_type() {
     echo "${VENUS_IMAGE_TYPE}" >${IMAGE_ROOTFS}/etc/venus/image-type
