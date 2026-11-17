@@ -29,8 +29,17 @@ python do_getname() {
 
 addtask getname after do_patch before do_compile
 
-# Fail on what npm clean-install doesn't catch: a shrinkwrap of another
-# version or made in a workspace.
+# npm carries on when an optional dependency fails to install, which
+# conflicts with a reproducible build. So the build installs none
+# (--omit=optional), see
+# https://github.com/victronenergy/venus/issues/1304
+# Therefore fail when package.json has any: otherwise one that the
+# software needs is missing on the GX without anyone noticing. Per
+# package, move it to dependencies with a patch, or remove it when the
+# software works without it.
+#
+# Also fail on what npm clean-install doesn't catch: a shrinkwrap of
+# another version or made in a workspace.
 python do_npm_check() {
     import json
 
@@ -42,6 +51,10 @@ python do_npm_check() {
         package = json.load(f)
     if not pv == package.get("version"):
         bb.fatal(f"PV {pv} doesn't match version {package.get('version')} in package.json")
+    optional = package.get("optionalDependencies")
+    if optional:
+        bb.fatal(f"optionalDependencies {' '.join(optional)} won't be installed, "
+                 "move them to dependencies or remove them, with a patch")
 
     shrinkwrap = os.path.join(s, "npm-shrinkwrap.json")
     if not os.path.isfile(shrinkwrap):
