@@ -123,6 +123,7 @@ do_compile() {
     cd "${NPM_TMP}" && npm $npm_cmd \
         --arch=${NPM_ARCH} \
         --target_arch=${NPM_ARCH} \
+        --engine-strict \
         --omit=dev \
         --omit=optional
 
