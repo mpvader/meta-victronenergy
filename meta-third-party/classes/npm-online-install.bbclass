@@ -88,6 +88,10 @@ addtask npm_check after do_patch before do_configure
 B = "${WORKDIR}/npm-pack"
 NPM_TMP = "${WORKDIR}/npm-tmp"
 
+# Fail on a package or dependency that doesn't support this nodejs (engines
+# field). Set to "false" for a dependency with a wrong engines field.
+NPM_ENGINE_STRICT ?= "true"
+
 DEBUG_PREFIX_MAP += " \
     -fmacro-prefix-map=${NPM_TMP}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${NPM_TMP}=${TARGET_DBGSRC_DIR} \
@@ -131,6 +135,7 @@ do_compile() {
     cd "${NPM_TMP}" && npm $npm_cmd \
         --arch=${NPM_ARCH} \
         --target_arch=${NPM_ARCH} \
+        --engine-strict=${NPM_ENGINE_STRICT} \
         --omit=dev \
         --omit=optional
 
