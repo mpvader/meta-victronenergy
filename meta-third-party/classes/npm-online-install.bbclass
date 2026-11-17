@@ -198,4 +198,13 @@ do_npm_audit[dirs] = "${S}"
 do_npm_audit[network] = "1"
 do_npm_audit[nostamp] = "1"
 
+# npm outdated reads the installed packages, hence after do_compile.
+do_npm_outdated() {
+    bbplain "${PN}:\n$(npm outdated --omit=dev --omit=optional 2>&1)"
+}
+addtask npm_outdated after do_compile
+do_npm_outdated[dirs] = "${NPM_TMP}"
+do_npm_outdated[network] = "1"
+do_npm_outdated[nostamp] = "1"
+
 INSANE_SKIP:${PN} += "already-stripped"
