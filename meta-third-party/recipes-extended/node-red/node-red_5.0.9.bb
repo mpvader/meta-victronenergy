@@ -15,6 +15,9 @@ RDEPENDS:${PN} = "nodejs-npm"
 
 inherit npm-online-install
 
+# Node-RED falls back to bcryptjs
+NPM_ALLOWED_OPTIONAL = "@node-rs/bcrypt"
+
 do_install:prepend() {
     # Apply patch to remove update notification from tour
     cd ${WORKDIR}

@@ -29,8 +29,13 @@ python do_getname() {
 
 addtask getname after do_unpack before do_compile
 
+# No optionalDependencies get installed. List here those of the package
+# itself that it works without; those of its dependencies aren't checked.
+NPM_ALLOWED_OPTIONAL ?= ""
+
 # Fail on what npm clean-install doesn't catch: a shrinkwrap of another
-# version or made in a workspace.
+# version or made in a workspace, and optionalDependencies that
+# --omit=optional leaves out although they are needed.
 python do_npm_check() {
     import json
 
@@ -70,6 +75,12 @@ python do_npm_check() {
     links = [entry["resolved"] for entry in lock["packages"].values() if entry.get("link")]
     if links:
         bb.fatal(f"npm-shrinkwrap.json links to {links[0]}; it was made in a workspace, {update}")
+
+    allowed = d.getVar("NPM_ALLOWED_OPTIONAL").split()
+    skipped = [name for name in optional if name not in allowed]
+    if skipped:
+        bb.fatal(f"optionalDependencies {' '.join(skipped)} won't be installed, "
+                 "move them to dependencies with a patch or list them in NPM_ALLOWED_OPTIONAL")
 }
 
 addtask npm_check after do_patch before do_configure
