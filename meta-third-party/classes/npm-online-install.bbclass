@@ -79,7 +79,9 @@ do_compile() {
     # remove the workdir of quilt, otherwise the patches themselves will be installed as well.
     rm -rf ${S}/.pc
 
-    tar=$(npm pack ${S})
+    # Don't run lifecycle scripts like prepack: their output would end up
+    # in $tar.
+    tar=$(npm pack --ignore-scripts ${S})
 
     # This used to install the tarball directly in the right place, but there is a bug
     # in more recent versions, ignoring the npm-shrinkwrap.json, see
