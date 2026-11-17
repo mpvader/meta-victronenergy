@@ -8,7 +8,6 @@ SRC_URI = " \
     file://npm-shrinkwrap.json;subdir=${S} \
 "
 
-# Careful! When updating the version, also npm-shrinkwrap.json must be updated
 SRC_URI[sha256sum] = "0bd4be13d1f73d4cc50db7c24f2041db78ff9d5348bdd024cb5844f447d9e085"
 
 S = "${UNPACKDIR}/npm"
