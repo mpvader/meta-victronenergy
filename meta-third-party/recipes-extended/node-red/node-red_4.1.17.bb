@@ -9,7 +9,7 @@ SRC_URI = "\
     file://Omit-peer-deps-from-palette-installs.patch;apply=no \
     file://npm-shrinkwrap.json;subdir=${S} \
 "
-SRC_URI[sha256sum] = "3fe4c5de7c3bf90b8faeb7d4692b877f7d4515cd21a81cb0ce5a310e27afa6fa"
+SRC_URI[sha256sum] = "be410670bc4d572fbd3c8bbcfaf503eecc635bcc7a9cee69aaaf875a447ea9a1"
 S = "${UNPACKDIR}/npm"
 
 RDEPENDS:${PN} = "nodejs-npm"
