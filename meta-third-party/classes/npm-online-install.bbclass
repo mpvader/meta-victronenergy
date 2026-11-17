@@ -25,28 +25,44 @@ python do_getname() {
         package = json.load(f)
     with open(os.path.join(w, "nodename"), "w") as f:
         f.write(package["name"] if "name" in package else pn)
-    if "version" in package:
-        pkgv = package["version"]
-        pv = d.getVar("PV")
-        if not pv == pkgv:
-            bb.warn(f"PV {pv} doesn't match the package.json its version {pkgv}")
-
-    shrinkwrap = os.path.join(s, "npm-shrinkwrap.json")
-    if not os.path.isfile(shrinkwrap):
-        return
-
-    with open(shrinkwrap, "r") as f:
-        package = json.load(f)
-
-        if not "version" in package:
-            bb.warn(f"no version field found in {shrinkwrap}")
-            return
-
-        with open(os.path.join(w, "schrinkwrapv"), "w") as f:
-            f.write(package["version"])
 }
 
 addtask getname after do_patch before do_compile
+
+# Fail on what npm clean-install doesn't catch: a shrinkwrap of another
+# version or made in a workspace.
+python do_npm_check() {
+    import json
+
+    s = d.getVar("S")
+    pn = d.getVar("PN")
+    pv = d.getVar("PV")
+    update = f"run 'bitbake -c update_shrinkwrap {pn}'"
+    with open(os.path.join(s, "package.json"), "r") as f:
+        package = json.load(f)
+    if not pv == package.get("version"):
+        bb.fatal(f"PV {pv} doesn't match version {package.get('version')} in package.json")
+
+    shrinkwrap = os.path.join(s, "npm-shrinkwrap.json")
+    if not os.path.isfile(shrinkwrap):
+        bb.fatal(f"No npm-shrinkwrap.json found for {pn}, add file://npm-shrinkwrap.json;subdir=${{S}} to SRC_URI")
+    with open(shrinkwrap, "r") as f:
+        lock = json.load(f)
+    root = lock.get("packages", {}).get("", {})
+    if not pv == root.get("version"):
+        bb.fatal(f"PV {pv} doesn't match the shrinkwrap version {root.get('version')}, {update}")
+
+    for key in ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]:
+        # npm leaves empty ones out of the shrinkwrap
+        if not package.get(key, {}) == root.get(key, {}):
+            bb.fatal(f"{key} differs between npm-shrinkwrap.json and package.json, {update}")
+
+    links = [entry["resolved"] for entry in lock.get("packages", {}).values() if entry.get("link")]
+    if links:
+        bb.fatal(f"npm-shrinkwrap.json links to {links[0]}; it was made in a workspace, {update}")
+}
+
+addtask npm_check after do_patch before do_configure
 
 B = "${WORKDIR}/npm-pack"
 NPM_TMP = "${WORKDIR}/npm-tmp"
@@ -66,13 +82,6 @@ do_compile() {
         fi
         npm_cmd="install"
     else
-        if [ ! -f ${S}/npm-shrinkwrap.json ]; then
-            bbfatal "No npm-shrinkwrap.json found for ${PN}"
-        fi
-        shrinkwrapv="$(cat ${WORKDIR}/schrinkwrapv)"
-        if [ "${PV}" != "$shrinkwrapv" ]; then
-            bbwarn "PV ${PV} doesn't match the shrinkwrap version $shrinkwrapv, run 'bitbake -c update_shrinkwrap ${PN}' first"
-        fi
         npm_cmd="clean-install"
     fi
 
