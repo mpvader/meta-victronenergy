@@ -189,4 +189,13 @@ do_update_shrinkwrap[dirs] = "${NPM_TMP}"
 do_update_shrinkwrap[network] = "1"
 do_update_shrinkwrap[nostamp] = "1"
 
+# Report the known vulnerabilities in the packages of the shrinkwrap.
+do_npm_audit() {
+    bbplain "${PN}: $(npm audit --package-lock-only --omit=dev --omit=optional 2>&1)"
+}
+addtask npm_audit after do_patch do_prepare_recipe_sysroot
+do_npm_audit[dirs] = "${S}"
+do_npm_audit[network] = "1"
+do_npm_audit[nostamp] = "1"
+
 INSANE_SKIP:${PN} += "already-stripped"
