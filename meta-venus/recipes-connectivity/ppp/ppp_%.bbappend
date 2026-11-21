@@ -8,7 +8,6 @@ EXTRA_OECONF += "--disable-eaptls --disable-peap"
 inherit daemontools
 
 SRC_URI += "\
-    file://0001-pppd-Rework-default-route-handling.-544.patch \
     file://ip-updown \
 "
 
