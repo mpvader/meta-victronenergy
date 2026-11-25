@@ -31,16 +31,18 @@ python () {
     d.appendVar('FILES:' + pkg, ' ${DAEMONTOOLS_SERVICES_DIR} ${DAEMONTOOLS_SERVICE_DIR} ${DAEMONTOOLS_COMMON_TEMPLATES_DIR}')
 }
 
-# The processes's virtual address space is far larger on aarch64
-# than on arm. Which can trigger e.g. venus-platform to abort when
+# The processes's virtual address space is far larger on 64-bit
+# (aarch64, x86-64) than on arm: glibc reserves 64 MB for the malloc
+# arena of each thread. Which can trigger e.g. venus-platform to abort when
 # hit (it can also fallback it seems, likely handle if mmap failed
 # and use less virtual memory).
 #
-# This allows aarch64 to allocate more virtual memory then arm.
+# This allows 64-bit to allocate more virtual memory then arm.
 # It is more interesting though to limit the actual memory used by
 # a program... but that doesn't seem to be trivial.
 SOFTLIMIT_ALL_FACTOR = "1"
 SOFTLIMIT_ALL_FACTOR:aarch64 = "4"
+SOFTLIMIT_ALL_FACTOR:x86-64 = "4"
 
 # note: only numeric constants are supported.
 def softlimit(d, data=None, stack=None, all=None):
