@@ -1,0 +1,21 @@
+From: Matthijs Vader <mvader@victronenergy.com>
+Subject: [PATCH] package.json: remove the optional @node-rs/bcrypt
+
+npm-online-install installs no optional dependencies. Node-RED uses
+bcryptjs when @node-rs/bcrypt is missing, as it has been on a GX since
+July 2025.
+
+Upstream-Status: Inappropriate [Venus OS specific]
+---
+--- a/package.json
++++ b/package.json
+@@ -44,9 +44,6 @@
+         "nopt": "5.0.0",
+         "semver": "7.8.5"
+     },
+-    "optionalDependencies": {
+-        "@node-rs/bcrypt": "1.10.7"
+-    },
+     "engines": {
+         "node": ">=22.9"
+     }

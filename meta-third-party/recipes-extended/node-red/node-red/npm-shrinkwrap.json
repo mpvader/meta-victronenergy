@@ -28,9 +28,6 @@
             },
             "engines": {
                 "node": ">=22.9"
-            },
-            "optionalDependencies": {
-                "@node-rs/bcrypt": "1.10.7"
             }
         },
         "node_modules/@babel/runtime": {

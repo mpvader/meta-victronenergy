@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=014f1a23c3da49aa929b21a96808ab22"
 
 SRC_URI = "\
     npm://registry.npmjs.org;package=${BPN};version=${PV} \
+    file://remove-optional-bcrypt.patch \
     file://Omit-peer-deps-from-palette-installs.patch;apply=no \
     file://npm-shrinkwrap.json;subdir=${S} \
 "
